@@ -7,10 +7,10 @@ import { User } from "../models/user.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 
-
 const sendOTP = async (recipientEmail, otp, username) => {
     const subject = `One-Time Password (OTP) for Exam Management Software Verification`;
     const body = `Dear ${username},\n\nWe hope this email finds you well. As part of our commitment to ensuring the security of your account and maintaining the integrity of our exam management software, we require you to verify your email address.\n\nTo proceed with the verification process, please use the following One-Time Password (OTP):\n\nOTP: ${otp}\n\nPlease enter this code within the next [2 minutes] to confirm your email address and complete the verification.\n\nThank you for your cooperation and commitment to maintaining a secure exam environment.\n\nBest regards,\n\nExam Management Software`;
+    console.log(recipientEmail, subject, body)
     const response = await fetch(`http://13.235.168.107:5001/send_mail`, {
         method: 'POST',
         headers: {
@@ -40,8 +40,6 @@ export const generateOTP = async (req, res) => {
             return res.status(401).json(new ApiResponse(400, req.body, "USER NOT EXIST...!"));
         }
 
-
-
         // Generate a random 7-digit number
         const otp = Math.floor(1000000 + Math.random() * 9000000);
 
@@ -51,7 +49,7 @@ export const generateOTP = async (req, res) => {
             email: user.email
         })
 
-        // const recipientNumber = user.phone;
+        const recipientNumber = user.phone;
         // console.log(recipientNumber)
         sendOTP(user.email, otp, user.username);
 

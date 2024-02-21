@@ -114,7 +114,7 @@ export const deleteExam = async (req, res) => {
 // GET AN EXAM BY EXAM NAME AND DATE
 export const getExamByNameAndDate = async (req, res) => {
     try {
-        const {examName, examDate} = req.body;
+        const { examName, examDate } = req.body;
         console.log(examName, examDate)
         const exam = await Exam.findOne({ examName, examDate });
         if (!exam) {
@@ -176,27 +176,72 @@ export const recentAndUpcomingExam = async (req, res) => {
     }
 }
 
+// // UPDATE THE EXAM
+// export const updateExam = async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const updatedExamObj = req.body;
+//         // console.log(updatedExamObj.examLocations[0].rooms);
+
+//         let exam = await Exam.findById(updatedExamObj._id);
+//         if (!exam) {
+//             return res.status(404).json(new ApiResponse(404, null, "EXAM DOESN'T EXIST...!"));
+//         }
+
+//         for(let i = 0; i < exam.examLocations.length; i++) {
+//             for(let j = 0; j < exam.examLocations[i].length; j++) { // For floor
+//                 for(let k = 0; k < exam.examLocations[i][j].length; k++) { // For room
+//                     exam.examLocations[i][j][k].answerScript = updateExam.examLocations[i][j][k].answerScript
+//                 }
+//             }
+//         }
+
+
+//         return res.status(200).json(new ApiResponse(200, exam, "EXAM UPDATED...!"));
+
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(error.code || 500).json(new ApiError(
+//             error.code, "EXAM CANNOT BE DELETED...!", error
+//         ));
+//     }
+// }
+
 // UPDATE THE EXAM
 export const updateExam = async (req, res) => {
     try {
         const id = req.params.id;
         const updatedExamObj = req.body;
 
-        let exam = await Exam.findById({ _id: id });
+        let exam = await Exam.findById(id);
         if (!exam) {
             return res.status(404).json(new ApiResponse(404, null, "EXAM DOESN'T EXIST...!"));
         }
 
-    
-        exam.examLocations = updatedExamObj.examLocations;
-        await exam.save();
+        // exam.examLocations = [];
+        // console.log(exam.examLocations)
+        // for (let i = 0; i < updatedExamObj.examLocations.length; i++) {
+        //    exam.examLocations.push(updatedExamObj.examLocations[i]);
+        // }
 
-        return res.status(200).json(new ApiResponse(200, exam, "EXAM UPDATED...!"));
+
+        exam.examLocations = updatedExamObj.examLocations;
+
+        
+           
+        
+
+
+
+        // Save the updated exam
+        const updatedExam = await exam.save();
+
+        return res.status(200).json(new ApiResponse(200, updatedExam, "EXAM UPDATED...!"));
 
     } catch (error) {
         console.error(error);
         return res.status(error.code || 500).json(new ApiError(
-            error.code, "EXAM CANNOT BE DELETED...!", error
+            error.code, "EXAM CANNOT BE UPDATED...!", error
         ));
     }
 }
