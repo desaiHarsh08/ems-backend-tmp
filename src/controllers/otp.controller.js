@@ -6,21 +6,16 @@ import { SupportStaff } from "../models/support_staff.model.js";
 import { User } from "../models/user.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
+import fetch from "node-fetch"
+
 
 const sendOTP = async (recipientEmail, otp, username) => {
-    const subject = `One-Time Password (OTP) for Exam Management Software Verification`;
-    const body = `Dear ${username},\n\nWe hope this email finds you well. As part of our commitment to ensuring the security of your account and maintaining the integrity of our exam management software, we require you to verify your email address.\n\nTo proceed with the verification process, please use the following One-Time Password (OTP):\n\nOTP: ${otp}\n\nPlease enter this code within the next [2 minutes] to confirm your email address and complete the verification.\n\nThank you for your cooperation and commitment to maintaining a secure exam environment.\n\nBest regards,\n\nExam Management Software`;
-    console.log(recipientEmail, subject, body)
-    const response = await fetch(`http://13.235.168.107:5001/send_mail`, {
+    const response = await fetch(`${process.env.EMAIL_API_URL}/send-email`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            toEmail: recipientEmail,
-            subject,
-            body
-        })
+        body: JSON.stringify({ username, recipientEmail, otp })
     });
     console.log(await response.json())
 }

@@ -35,6 +35,15 @@ const examinerSchema = new mongoose.Schema(
         },
         examId: {
             type: String,
+        },
+        from: {
+            type: String
+        },
+        to: {
+            type: String
+        },
+        total: {
+            type: Number
         }
     }, 
     { timestamps: true}

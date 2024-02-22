@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import asyncHandler from "../utils/asyncHandler.js";
-import { createRoleForUser, getByRole, updateTheRoleForAUser, getUsersExamsId, deleteRoleForAUser } from '../controllers/common_roles_assign.controller.js';
+import { createRoleForUser, getByRole, updateTheRoleForAUser, getUsersExamsId, deleteRoleForAUser, updateExaminerFromToTotalField, getByRoleAndExamNameAndDate } from '../controllers/common_roles_assign.controller.js';
 import authenticateUser from '../middlewares/authenticateUser.middleware.js';
 
 const router = express.Router();
@@ -33,10 +33,13 @@ router.delete('/delete', [
 // ROUTE 5: Get by users role, examName, examDate using POST "/api/common_role_assign/get-by-role-name-date". Login required
 router.post('/get-by-role-name-date', [
     body('userType', 'Enter a valid userType').exists()
-], authenticateUser, asyncHandler(getByRole));
+], authenticateUser, asyncHandler(getByRoleAndExamNameAndDate));
 
 // ROUTE 6: Get by users role, examId using POST "/api/common_role_assign/user-examID". Login required
 router.post('/user-examId', authenticateUser, asyncHandler(getUsersExamsId));
+
+// ROUTE 7: Set the from, to, and total for examiner using POST "/api/common_role_assign/updated-examiner". Login required
+router.post('/updated-examiner', authenticateUser, asyncHandler(updateExaminerFromToTotalField));
 
 
 export { router as commonRolesAssignRouter };

@@ -7,10 +7,20 @@ import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
+const senEmail = async (recipientEmail, subject, body) => {
+    const response = await fetch(`${process.env.EMAIL_API_URL}/send-email-v2`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recipientEmail, subject, body })
+    });
+    // console.log(await response.json())
+}
 
 export const createRoleForUser = async (req, res) => {
     try {
-        const { username, email, userType, phone, examName, examDate, examTime, examId, roomNumber } = req.body;
+        const { username, email, userType, phone, examName, examDate, examTime, examId, roomNumber, from, to, total } = req.body;
   
 
         let roleObjAssigned;
@@ -22,11 +32,18 @@ export const createRoleForUser = async (req, res) => {
             roleObjAssigned = await ExamOC.create({ username, email, userType, phone, examName, examDate, examId, examTime });
         }
         else if (userType === "EXAMINER") {
-            roleObjAssigned = await Examiner.create({ username, email, userType, phone, examName, examDate, examId, examTime });
+            roleObjAssigned = await Examiner.create({ username, email, userType, phone, examName, examDate, examId, examTime, from, to, total });
         }
         else if (userType === "SUPPORT_STAFF") {
             roleObjAssigned = await SupportStaff.create({ username, email, userType, phone, examName, examDate, examId, examTime });
         }
+        const date = new Date(examDate);
+        const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
+        
+        const subject = `Assignment as ${userType} for Exam: ${examName} on ${formattedDate}`;
+        const body = `Dear ${username},\n\nWe hope this message finds you well. We are pleased to inform you that you have been assigned the role of ${userType} for the upcoming exam: ${examName}, scheduled to take place on ${formattedDate}.\n\nYour dedication and commitment to ensuring a smooth examination process are highly valued, and we trust that your involvement will contribute to the success of this event.\n\nDetails of the Exam:\n\nExam Name: ${examName}\nExam Date: ${formattedDate}\n\nYour Assigned Role: ${userType}\n\nWe appreciate your cooperation and adherence to the assigned responsibilities. Should you have any queries or require further information, please do not hesitate to contact us.\n\nThank you for your commitment to maintaining the integrity of the examination process. We wish you a successful and smooth experience as an ${userType} for ${examName}.\n\nBest regards,\n\nExam Management System`;
+
+        senEmail(email, subject, body);
 
         return res.status(201).json(new ApiResponse(201, roleObjAssigned, "ROLE FOR USER CREATED...!"));
 
@@ -69,9 +86,10 @@ export const getByRole = async (req, res) => {
 export const getByRoleAndExamNameAndDate = async (req, res) => {
     try {
         const { userType, examName, examDate } = req.body;
+        console.log(userType, examName, examDate+'T00:00:00.000+00:00')
         let userArr = [];
         if (userType === "INVIGILATOR") {
-            userArr = await Invigilator.find({userType, examName, examDate});
+            userArr = await Invigilator.find({userType, examName, examDate: examDate+'T00:00:00.000+00:00'});
         }
         else if (userType === "EXAM_OC") {
             userArr = await ExamOC.find({userType, examName, examDate});
@@ -124,6 +142,50 @@ export const updateTheRoleForAUser = async (req, res) => {
         console.log(error)
         return res.status(error.code || 500).json(new ApiError(
             error.code, "ROLE IS NOT ASSSIGNED TO ANY USER...!", error
+        ));
+    }
+}
+
+export const updateExaminerFromToTotalField = async (req, res) => {
+    try {
+        const updatedExaminer = req.body;
+        console.log(updatedExaminer);
+        if (updatedExaminer.userType !== "EXAMINER") {
+            return res.status(400).json(new ApiResponse(404, updatedExaminer, "INVALID USER...!"));
+        }
+       
+        const examiner = await Examiner.findByIdAndUpdate(
+            updatedExaminer._id,
+            {
+                $set: {
+                    from: updatedExaminer.from,
+                    to: updatedExaminer.to,
+                    total: updatedExaminer.total,
+                },
+            },
+            { new: true } // Return the modified document
+        );
+
+        // examiner.from = updatedExaminer.from;
+        // examiner.to = updatedExaminer.to;
+        // examiner.total = updatedExaminer.total;
+
+        // await examiner.save();
+
+        const date = new Date(examiner.examDate);
+        const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
+
+        const subject = `Appointment as Examiner for Exam: ${examiner.examName} on ${formattedDate}`;
+        const body = `Dear ${examiner.username},\n\nWe trust this email finds you well. We are pleased to inform you that you have been appointed as an Examiner for the exam: ${examiner.examName}.\n\nDetails of the Exam:\n\nExam Name: ${examiner.examName}\nExam Date:   ${formattedDate}\n\nYour Assigned Role:\n\nExaminer\n1. You are responsible for evaluating the answer scripts assigned to you.\n2. The answer scripts will be from student UID ${examiner.from} to student UID ${examiner.to}.\n3. The total marks for each script should be recorded accurately.\n\nAssigned Range:\nStart UID: ${examiner.from}\nEnd UID:   ${examiner.to}\n\nYour contribution to the examination process is highly valued, and we appreciate your commitment to maintaining the integrity and accuracy of the evaluation process.\n\nThank you for your dedication, and we wish you a successful and smooth experience as an Examiner for ${examiner.examName}.\n\nBest regards,\n\nExam Management System`;
+
+         senEmail(examiner.email, subject, body);
+    console.log("saved:", examiner)
+        return res.status(201).json(new ApiResponse(200, examiner, "EXAMINER UPDATED...!"));
+
+    } catch (error) {
+        console.log(error)
+        return res.status(error.code || 500).json(new ApiError(
+            error.code, "EXAMINER NOT UPDATED...!", error
         ));
     }
 }
