@@ -72,6 +72,19 @@ export const createExam = async (req, res) => {
     }
 }
 
+export const getAllExam = async(req, res) => {
+    try {
+        const currentDate = new Date();
+        const exams = await Exam.find({examDate: { $lt: currentDate }});
+        return res.status(200).json(new ApiResponse(200, exams, "EXAMS RETRIEVED...!"));
+    } catch (error) {
+        console.error(error);
+        return res.status(error.code || 500).json(new ApiError(
+            error.code, "EXAM CANNOT BE FETCHED...!", error
+        ));
+    }
+}
+
 // GET AN EXAM BY ID
 export const getExam = async (req, res) => {
     try {

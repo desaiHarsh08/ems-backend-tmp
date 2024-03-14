@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from 'express-validator';
 import asyncHandler from "../utils/asyncHandler.js";
-import { createExam, deleteExam, getExam, getExamByNameAndDate, recentAndUpcomingExam, updateExam } from "../controllers/exam.controller.js";
+import { createExam, deleteExam, getAllExam, getExam, getExamByNameAndDate, recentAndUpcomingExam, updateExam } from "../controllers/exam.controller.js";
 import authenticateUser from "../middlewares/authenticateUser.middleware.js";
 
 
@@ -29,6 +29,8 @@ router.post('/get-by-name-date', authenticateUser, asyncHandler(getExamByNameAnd
 // ROUTE 5: Update the exam | METHOD: 'GET' | URL: '/api/exam/get-by-name-date' | LOGIN: Required
 router.post('/update/:id', authenticateUser, asyncHandler(updateExam));
 
+// ROUTE 6: Get all exams | METHOD: 'GET' | URL: '/api/exam/get-all' | LOGIN: Required
+router.get('/get-all', authenticateUser, asyncHandler(getAllExam));
 
 
 export {router as examRouter};

@@ -7,6 +7,7 @@ import { User } from "../models/user.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import fetch from "node-fetch"
+import { sendWhatsAppMessage } from "../services/whatsapp_messaging.js";
 
 
 const sendOTP = async (recipientEmail, otp, username) => {
@@ -21,6 +22,10 @@ const sendOTP = async (recipientEmail, otp, username) => {
 }
 
 export const generateOTP = async (req, res) => {
+
+     const interaktApiKey = process.env.INTERAKT_API_KEY;
+  const interaktBaseUrl = process.env.INTERAKT_BASE_URL;
+
     try {
         console.log(req.body.email)
         const userTypes = [User, Invigilator, SupportStaff, Examiner, ExamOC];
@@ -44,9 +49,13 @@ export const generateOTP = async (req, res) => {
             email: user.email
         })
 
+        console.log(user)
+
         const recipientNumber = user.phone;
         // console.log(recipientNumber)
+        const data = await sendWhatsAppMessage(recipientNumber, otp, interaktApiKey, interaktBaseUrl);
         sendOTP(user.email, otp, user.username);
+        console.log(data);
 
         return res.status(201).json(new ApiResponse(201, otpObject, "Generated OTP...!"));
 

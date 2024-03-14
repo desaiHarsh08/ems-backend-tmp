@@ -20,6 +20,11 @@ const userSchema = new mongoose.Schema(
         },
         refreshToken: {
             type: String,
+        },
+        phone: {
+            type: String,
+            required: true,
+            default: ""
         }
     }, 
     { timestamps: true}
