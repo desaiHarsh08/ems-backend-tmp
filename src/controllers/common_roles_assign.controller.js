@@ -4,10 +4,11 @@ import { Examiner } from "../models/examiner.model.js";
 import { Invigilator } from "../models/invigilator.model.js";
 import { SupportStaff } from "../models/support_staff.model.js";
 import { User } from "../models/user.model.js";
+import { sendWhatsAppMessage } from "../services/whatsapp_messaging.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
-const senEmail = async (recipientEmail, subject, body) => {
+const sendEmail = async (recipientEmail, subject, body) => {
     const response = await fetch(`${process.env.EMAIL_API_URL}/send-email-v2`, {
         method: 'POST',
         headers: {
@@ -15,35 +16,56 @@ const senEmail = async (recipientEmail, subject, body) => {
         },
         body: JSON.stringify({ recipientEmail, subject, body })
     });
-    // console.log(await response.json())
+    console.log(await response.json())
 }
 
 export const createRoleForUser = async (req, res) => {
+    console.log('adding users: -');
     try {
-        const { username, email, userType, phone, examName, examDate, examTime, examId, roomNumber, from, to, total } = req.body;
-  
+        const { username, email, userType, phone, examName, examDate, examTime, examId, roomNumber, from, to, total, paperChecking } = req.body;
+        const date = new Date(examDate);
+        const formattedDate = `${date.getDate().toString().padStart(2, 0)}-${date.getMonth().toString().padStart(2, 0)}-${date.getFullYear()}`;
+
+        const subject = `Assignment as ${userType} for Exam: ${examName} on ${formattedDate}`;
 
         let roleObjAssigned;
+        let body = '';
+        let templateName = '';
+        let messageArr = [];
+
         if (userType === "INVIGILATOR") {
             console.log("in invig")
             roleObjAssigned = await Invigilator.create({ username, email, userType, phone, examName, examDate, examTime, examId, roomNumber });
+            body = `Dear ${username},\n\nYou have been assigned role of Invigilator for the following upcoming examination.\n\nName of the Exam: ${examName}\nExam Date: ${formattedDate}\nExam Time: ${examTime}\nRoom to invigilate: ${roomNumber}\n\nYou are requested to report to Exam OC in Room No.118, 30 Minutes before the schedule examination time.\n\nExamination Committee.`;
+            templateName = "invi_role";
+            messageArr = [username, examName, formattedDate, examTime, roomNumber];
         }
         else if (userType === "EXAM_OC") {
             roleObjAssigned = await ExamOC.create({ username, email, userType, phone, examName, examDate, examId, examTime });
+            body = `Dear ${username},\n\nYou have been assigned role of Officer in Charge (OC)  for the following upcoming examination.\n\nName of the Exam: ${examName}\nExam Date: ${formattedDate}\nExam Time: ${examTime}\n\nAlong with the other Examination related work, you are requested to login to your EMS console and update the information as required therein.\n\nExamination Committee`;
+            messageArr = [username, examName, formattedDate, examTime];
+            templateName = "oc_role";
         }
         else if (userType === "EXAMINER") {
-            roleObjAssigned = await Examiner.create({ username, email, userType, phone, examName, examDate, examId, examTime, from, to, total });
+            roleObjAssigned = await Examiner.create({ username, email, userType, phone, examName, examDate, examId, examTime, from, to, total, paperChecking });
+            
+
+            body = `Dear ${username}\n\nYou have been assigned role of Examiner for the following upcoming examination. you will be allotted answer scripts for correction immediately after completion of examination. Once allotted, you will receive and email and WhatsApp also.\n\nOn allotment, you are require to collect the physical answer script from the Examination Control room, Room No 112 between 10AM to 4PM on any working day. The collection should be done within 24 hrs. from the receipt of allotment email/WhatsApp.\n\nYou are requested to check the allotted answer scripts with the specified time and upload the marks.\n\nYou can access your Examination Console by clinking the link given below.\n\nName of the Examination: ${examName}\nDate of Examination: ${formattedDate}\nExam Time: ${examTime}\nLast date for checking Answer Script: ${paperChecking.lastDateChecking}\nLast date for uploading of Marks: ${paperChecking.lastDateMarksUpload}\n\nExamination Committee
+            `;
+
+            templateName = "examiner_role";
+            messageArr = [username, examName, examDate, examTime, paperChecking.lastDateChecking, paperChecking.lastDateMarksUpload]
+
+
         }
         else if (userType === "SUPPORT_STAFF") {
             roleObjAssigned = await SupportStaff.create({ username, email, userType, phone, examName, examDate, examId, examTime });
         }
-        const date = new Date(examDate);
-        const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
         
-        const subject = `Assignment as ${userType} for Exam: ${examName} on ${formattedDate}`;
-        const body = `Dear ${username},\n\nWe hope this message finds you well. We are pleased to inform you that you have been assigned the role of ${userType} for the upcoming exam: ${examName}, scheduled to take place on ${formattedDate}.\n\nYour dedication and commitment to ensuring a smooth examination process are highly valued, and we trust that your involvement will contribute to the success of this event.\n\nDetails of the Exam:\n\nExam Name: ${examName}\nExam Date: ${formattedDate}\n\nYour Assigned Role: ${userType}\n\nWe appreciate your cooperation and adherence to the assigned responsibilities. Should you have any queries or require further information, please do not hesitate to contact us.\n\nThank you for your commitment to maintaining the integrity of the examination process. We wish you a successful and smooth experience as an ${userType} for ${examName}.\n\nBest regards,\n\nExam Management System`;
+        
 
-        senEmail(email, subject, body);
+        sendWhatsAppMessage(phone, messageArr, process.env.INTERAKT_API_KEY, process.env.INTERAKT_BASE_URL, templateName);
+        sendEmail(email, subject, body);
 
         return res.status(201).json(new ApiResponse(201, roleObjAssigned, "ROLE FOR USER CREATED...!"));
 
@@ -161,25 +183,30 @@ export const updateExaminerFromToTotalField = async (req, res) => {
                     from: updatedExaminer.from,
                     to: updatedExaminer.to,
                     total: updatedExaminer.total,
+                    papperChecking: updatedExaminer.paperChecking
                 },
             },
             { new: true } // Return the modified document
         );
 
-        // examiner.from = updatedExaminer.from;
-        // examiner.to = updatedExaminer.to;
-        // examiner.total = updatedExaminer.total;
-
-        // await examiner.save();
-
         const date = new Date(examiner.examDate);
-        const formattedDate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
+        const formattedDate = `${date.getDate().toString().padStart(2, 0)}-${date.getMonth().toString().padStart(2, 0)}-${date.getFullYear()}`;
 
         const subject = `Appointment as Examiner for Exam: ${examiner.examName} on ${formattedDate}`;
-        const body = `Dear ${examiner.username},\n\nWe trust this email finds you well. We are pleased to inform you that you have been appointed as an Examiner for the exam: ${examiner.examName}.\n\nDetails of the Exam:\n\nExam Name: ${examiner.examName}\nExam Date:   ${formattedDate}\n\nYour Assigned Role:\n\nExaminer\n1. You are responsible for evaluating the answer scripts assigned to you.\n2. The answer scripts will be from student UID ${examiner.from} to student UID ${examiner.to}.\n3. The total marks for each script should be recorded accurately.\n\nAssigned Range:\nStart UID: ${examiner.from}\nEnd UID:   ${examiner.to}\n\nYour contribution to the examination process is highly valued, and we appreciate your commitment to maintaining the integrity and accuracy of the evaluation process.\n\nThank you for your dedication, and we wish you a successful and smooth experience as an Examiner for ${examiner.examName}.\n\nBest regards,\n\nExam Management System`;
 
-         senEmail(examiner.email, subject, body);
-    console.log("saved:", examiner)
+        const body = `Dear ${examiner.username}\n\nAs an examiner, you have been allotted answer script for correction and awarding marks for the following examination.\n\nYou are requested to collect the said answer script from room no. 115 on any working day between 10am to 4pm within 24 hrs. of receipt of allotment email/WhatsApp.\n\nName of the Examination: ${examiner.examName}\nDate of the Examination: ${formattedDate}\nLast date for paper checking: ${examiner.paperChecking.lastDateChecking}\nLast date for marks upload: ${examiner.paperChecking.lastDateMarksUpload}\n\nBest Regards\n\nExamination Committee`;
+         sendEmail(examiner.email, subject, body);
+
+         const messageArr = [examiner.username, examiner.examName, formattedDate, examiner.paperChecking.lastDateChecking, examiner.paperChecking.lastDateMarksUpload];
+
+         sendWhatsAppMessage(
+            examiner.phone, 
+            messageArr, 
+            process.env.INTERAKT_API_KEY, 
+            process.env.INTERAKT_BASE_URL, 
+            'as_allot'
+        );
+    
         return res.status(201).json(new ApiResponse(200, examiner, "EXAMINER UPDATED...!"));
 
     } catch (error) {

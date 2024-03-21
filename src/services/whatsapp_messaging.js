@@ -1,46 +1,48 @@
 import fetch from "node-fetch";
 
-export const sendWhatsAppMessage = async (to, message, interaktApiKey, interaktBaseUrl) => {
-    try {
-    
-        console.log(interaktApiKey, interaktBaseUrl);
-    console.log("in service, to =", to);
-        const requestBody = {
-          countryCode: '+91',
-          phoneNumber: to,
-          type: 'Template',
-          template: {
-            name: 'logincode',
-            languageCode: 'en',
-            headerValues: ['Alert'],
-            bodyValues: [message],
-          },
-          data: {
-            message: message,
-          },
-        };
-    
-        const response = await fetch(`https://api.interakt.ai/v1/public/message/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${interaktApiKey}`,
-          },
-          body: JSON.stringify(requestBody)
-        });
-    
-        if (!response.ok) {
-          const errorResponse = await response.json(); // Log the error response
-          throw new Error(`HTTP error! Status: ${response.status}, Message: ${JSON.stringify(errorResponse)}`);
-        }
-    
-        const data = await response.json()
-        console.log(data)
+export const sendWhatsAppMessage = async (to, messageArr = [], interaktApiKey, interaktBaseUrl, templateName = 'logincode') => {
+  console.log(to, messageArr, interaktApiKey, interaktBaseUrl, templateName);
+  try {
+    const requestBody = {
+      countryCode: '+91',
+      phoneNumber: to,
+      type: 'Template',
+      template: {
+        name: templateName,
+        languageCode: 'en',
+        headerValues: ['Alert'],
+        bodyValues: messageArr,
+      },
+      data: {
+        message: '',
+      },
+    };
+    // 
+    const response = await fetch(`https://api.interakt.ai/v1/public/message/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${interaktApiKey}`,
+      },
+      body: JSON.stringify(requestBody)
+    });
 
-        return data;
+    console.log('Response Status:', response.status);
+    console.log('Response Headers:', response.headers.raw());
+    // const responseBody = await response.text();
+    // console.log('Response Body:', responseBody);
+    if (!response.ok) {
+      const errorResponse = await response.json(); // Log the error response
+      throw new Error(`HTTP error! Status: ${response.status}, Message: ${JSON.stringify(errorResponse)}`);
+    }
 
-      } catch (error) {
-        console.error(error);
-        throw error
-      }
+    const data = await response.json()
+    console.log(data)
+
+    return data;
+
+  } catch (error) {
+    console.error(error.message);
+    throw error
+  }
 }

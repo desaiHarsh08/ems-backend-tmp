@@ -52,8 +52,8 @@ export const generateOTP = async (req, res) => {
         console.log(user)
 
         const recipientNumber = user.phone;
-        // console.log(recipientNumber)
-        const data = await sendWhatsAppMessage(recipientNumber, otp, interaktApiKey, interaktBaseUrl);
+        const messageArr = [otp];
+        const data = await sendWhatsAppMessage(recipientNumber, messageArr, interaktApiKey, interaktBaseUrl, 'logincode');
         sendOTP(user.email, otp, user.username);
         console.log(data);
 

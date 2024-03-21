@@ -149,16 +149,18 @@ export const recentAndUpcomingExam = async (req, res) => {
     try {
         // Get the current date
         const currentDate = new Date();
+        const searchDate = `${currentDate.getFullYear()}-${currentDate.getMonth().toString().padStart(2, 0)}-${currentDate.getDay()}T00:00:00.000+00:00`
+        console.log("searchDate:", searchDate);
 
         // Find upcoming exams
         const upcomingExams = await Exam.find({
             examDate: { $gt: currentDate }
-        }).sort({ examDate: 1 }).limit(5); // Adjust the limit as needed
+        }).sort({ examDate: 1 }); // Adjust the limit as needed
 
         // Find recent exams (for today and past)
         const recentExams = await Exam.find({
             examDate: { $lte: currentDate }
-        }).sort({ examDate: -1 }).limit(5); // Adjust the limit as needed
+        }).sort({ examDate: -1 }); // Adjust the limit as needed
 
         // Convert examTime to AM/PM format
         const formattedUpcomingExams = upcomingExams.map(exam => ({
@@ -168,10 +170,13 @@ export const recentAndUpcomingExam = async (req, res) => {
             examTime: convertTimeToAMPM(exam.examTime)
         }));
 
+        console.log("line 171, recentExams = ", recentExams);
+
         const formattedRecentExams = recentExams.map(exam => ({
             ...exam.toObject(),
             examDate: formatDate(exam.examDate),
-            examTime: convertTimeToAMPM(exam.examTime)
+            // examTime: convertTimeToAMPM(exam.examTime)
+            examTime: exam.examTime
         }));
 
         const examsObj = {

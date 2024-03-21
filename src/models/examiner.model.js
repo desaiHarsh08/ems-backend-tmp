@@ -44,6 +44,16 @@ const examinerSchema = new mongoose.Schema(
         },
         total: {
             type: Number
+        },
+        paperChecking: {
+            lastDateChecking: {
+                type: String,
+                default: ''
+            },
+            lastDateMarksUpload: {
+                type: String,
+                default: ''
+            },
         }
     }, 
     { timestamps: true}
