@@ -54,7 +54,15 @@ const examinerSchema = new mongoose.Schema(
                 type: String,
                 default: ''
             },
-        }
+        },
+        dateChecking: {
+            type: String,
+            default: ''
+        },
+        dateMarksUpload: {
+            type: String,
+            default: ''
+        },
     }, 
     { timestamps: true}
 );

@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import asyncHandler from "../utils/asyncHandler.js";
-import { createStudent, deleteStudent, getStudents, getStudentsByNameAndDate, getStudentsStats, getStudentsStatsByNameAndDate, updateStudent } from '../controllers/student.controller.js';
+import { createStudent, deleteStudent, getStudents, getStudentsByAllotmentRegister, getStudentsByNameAndDate, getStudentsStats, getStudentsStatsByNameAndDate, updateStudent } from '../controllers/student.controller.js';
 import authenticateUser from '../middlewares/authenticateUser.middleware.js';
 
 const router = express.Router();
@@ -26,5 +26,8 @@ router.get('/get-student-stats-recent', authenticateUser, asyncHandler(getStuden
 
 // ROUTE 6: Get the students stats using POST "/api/student/get-student-stats-date-name". Login required
 router.post('/get-student-stats-date-name', authenticateUser, asyncHandler(getStudentsStatsByNameAndDate));
+
+// ROUTE 7: Get the students by allotment register using POST "/api/student/get-students-allotment-register". Login required
+router.post('/get-students-allotment-register', authenticateUser, asyncHandler(getStudentsByAllotmentRegister));
 
 export { router as studentRouter };

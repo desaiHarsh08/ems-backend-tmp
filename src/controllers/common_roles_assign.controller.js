@@ -217,6 +217,88 @@ export const updateExaminerFromToTotalField = async (req, res) => {
     }
 }
 
+export const updateExaminerWorkprogressDC = async (req, res) => {
+    try {
+        const { dateChecking, _id, examDate, examName } = req.body;
+       
+       
+        const examiner = await Examiner.findById(_id);
+        if(!examiner) {
+            return res.status(404).json(new ApiResponse(404, examiner, "EXAMINER NOT FOUND...!"));
+
+        }
+
+        examiner.dateChecking = dateChecking;
+        examiner.save();
+    
+        return res.status(201).json(new ApiResponse(200, examiner, "EXAMINER UPDATED...!"));
+
+    } catch (error) {
+        console.log(error)
+        return res.status(error.code || 500).json(new ApiError(
+            error.code, "EXAMINER NOT UPDATED...!", error
+        ));
+    }
+}
+
+export const updateExaminerWorkprogressMU = async (req, res) => {
+    try {
+        const { dateMarksUpload, _id, examDate, examName } = req.body;
+        
+       
+        const examiner = await Examiner.findById(_id);
+        if(!examiner) {
+            return res.status(404).json(new ApiResponse(404, examiner, "EXAMINER NOT FOUND...!"));
+
+        }
+
+        examiner.dateMarksUpload = dateMarksUpload;
+        examiner.save();
+    
+        return res.status(201).json(new ApiResponse(200, examiner, "EXAMINER UPDATED...!"));
+
+    } catch (error) {
+        console.log(error)
+        return res.status(error.code || 500).json(new ApiError(
+            error.code, "EXAMINER NOT UPDATED...!", error
+        ));
+    }
+}
+
+export const examinerWorkprogress = async (req, res) => {
+    try {
+        const { _id } = req.body;
+        const examiner = await Examiner.findById(_id);
+
+        if(!examiner) {
+            return res.status(404).json(new ApiResponse(404, examiner, "EXAMINER NOT FOUND...!"));
+        }
+
+        if (examiner.userType !== "EXAMINER") {
+            return res.status(400).json(new ApiResponse(404, updatedExaminer, "INVALID USER...!"));
+        }
+       
+
+        let dateCheckingFlag = false;
+        let marksUploadFlag = false;
+        if(examiner.dateChecking!==''){
+            dateCheckingFlag = true;
+        }
+
+        if(examiner.dateMarksUpload !== '') {
+            marksUploadFlag = true;
+        }
+        
+        return res.status(200).json(new ApiResponse(200, {dateCheckingFlag, marksUploadFlag}, "ALL DONE...!"));
+
+    } catch (error) {
+        console.log(error)
+        return res.status(error.code || 500).json(new ApiError(
+            error.code, "EXAMINER NOT UPDATED...!", error
+        ));
+    }
+}
+
 export const deleteRoleForAUser = async (req, res) => {
     try {
         const { userType, _id } = req.body;

@@ -1,7 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import asyncHandler from "../utils/asyncHandler.js";
-import { createRoleForUser, getByRole, updateTheRoleForAUser, getUsersExamsId, deleteRoleForAUser, updateExaminerFromToTotalField, getByRoleAndExamNameAndDate } from '../controllers/common_roles_assign.controller.js';
+import { createRoleForUser, getByRole, updateTheRoleForAUser, getUsersExamsId, deleteRoleForAUser, updateExaminerFromToTotalField, getByRoleAndExamNameAndDate, updateExaminerWorkprogressDC, updateExaminerWorkprogressMU, examinerWorkprogress } from '../controllers/common_roles_assign.controller.js';
 import authenticateUser from '../middlewares/authenticateUser.middleware.js';
 
 const router = express.Router();
@@ -40,6 +40,13 @@ router.post('/user-examId', authenticateUser, asyncHandler(getUsersExamsId));
 
 // ROUTE 7: Set the from, to, and total for examiner using POST "/api/common_role_assign/updated-examiner". Login required
 router.post('/updated-examiner', authenticateUser, asyncHandler(updateExaminerFromToTotalField));
+
+// ROUTE 8: Set the dc for examiner using POST "/api/common_role_assign/workprogress-dc". Login required
+router.post('/workprogress-dc', authenticateUser, asyncHandler(updateExaminerWorkprogressDC));
+// ROUTE 9: Set the dc for examiner using POST "/api/common_role_assign/workprogress-mu". Login required
+router.post('/workprogress-mu', authenticateUser, asyncHandler(updateExaminerWorkprogressMU));
+// ROUTE 9: Get the dc for examiner using POST "/api/common_role_assign/workprogress". Login required
+router.post('/workprogress', authenticateUser, asyncHandler(examinerWorkprogress));
 
 
 export { router as commonRolesAssignRouter };

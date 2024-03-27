@@ -152,6 +152,53 @@ export const getStudentsByNameAndDate = async (req, res) => {
     }
 }
 
+// GET STUDENTS ON THE BASIS OF EXAM_NAME, EXAM_DATE, FROM, TO AND TOTAL
+export const getStudentsByAllotmentRegister = async (req, res) => {
+    let { examName, examDate, fromRollNo, toRollNo, total } = req.body;
+    fromRollNo = fromRollNo.startsWith('0') ? fromRollNo.substring(1) : fromRollNo;
+    toRollNo = toRollNo.startsWith('0') ? toRollNo.substring(1) : toRollNo;
+
+    console.log(examName, new Date(examDate), fromRollNo, toRollNo, total);
+    if(!examDate.includes('T00:00:00.000Z')) {
+        examDate = examDate + 'T00:00:00.000Z';
+    }
+    try {
+        const students = await Student.find({
+            'examDetails.examName': `${examName}`,
+            'examDetails.examDate': `${new Date(examDate)}`,
+        });
+console.log("students.length =", students.length);
+        // for(let i = 0; i < students.length; i++) {
+        //     students[i] = students[i].toString().padStart(10, 0);
+        // }
+
+    
+console.log("fromRollNo:", fromRollNo);
+console.log("toRollNo:", toRollNo);
+console.log("student[0] = ",students[0].studentUID );
+        const arr = [];
+        // let i = students.find((ele) => ele.studentUID == fromRollNo).studentUID;
+        // let end = students.find((ele) => ele.studentUID == toRollNo);
+// console.log(i, end);
+        for(let i = 0; i < students.length; i++) {
+            if(students[i].studentUID == fromRollNo && students[i].isPresent) {
+                arr.push(students[i]);
+            }
+
+            if(students[i].studentUID == toRollNo) {
+                break;
+            }
+
+
+        }
+
+        return res.status(200).json(new ApiResponse(200, arr, "Allotment register list!"));
+
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 // GET THE STUDENTS ON THE BASIS OF CURRENT DATE (TODAY)
 const getRecentExams = async () => {
     try {
