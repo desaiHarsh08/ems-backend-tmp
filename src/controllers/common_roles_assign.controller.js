@@ -24,7 +24,7 @@ export const createRoleForUser = async (req, res) => {
     try {
         const { username, email, userType, phone, examName, examDate, examTime, examId, roomNumber, from, to, total, paperChecking } = req.body;
         const date = new Date(examDate);
-        const formattedDate = `${date.getDate().toString().padStart(2, 0)}-${date.getMonth().toString().padStart(2, 0)}-${date.getFullYear()}`;
+        const formattedDate = `${date.getDate().toString().padStart(2, 0)}-${(date.getMonth() + 1).toString().padStart(2, 0)}-${date.getFullYear()}`;
 
         const subject = `Assignment as ${userType} for Exam: ${examName} on ${formattedDate}`;
 
