@@ -61,7 +61,10 @@ export const loginUser = async (req, res) => {
                     user = await userTypes[i].findOne({ email: req.body.email });
                 }
                 else {
-                    tmpArr = await userTypes[i].find({email: req.body.email});
+                    const date = new Date()
+                    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, 0)}-${date.getDate().toString().padStart(2, 0)}T00:00:00.000Z`
+                    console.log("formattedDate:", formattedDate)
+                    tmpArr = await userTypes[i].find({email: req.body.email, examDate: formattedDate});
                     console.log(tmpArr)
                     for(let j = 0; j < tmpArr.length; j++) {
                         console.log('in loop:', tmpArr[j].examId);

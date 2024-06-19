@@ -94,6 +94,7 @@ export const getStudents = async (req, res) => {
             'examDetails.floorNumber': floorNumber,
             'examDetails.roomNumber': roomNumber
         });
+        console.log("students:", students);
         if (students.length === 0) {
             return res.status(404).json(new ApiResponse(404, null, "NO STUDENT FOUND...!"));
         }

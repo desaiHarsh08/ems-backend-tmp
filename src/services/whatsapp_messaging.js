@@ -18,6 +18,7 @@ export const sendWhatsAppMessage = async (to, messageArr = [], interaktApiKey, i
       },
     };
     // 
+    console.log(JSON.stringify(requestBody));
     const response = await fetch(`https://api.interakt.ai/v1/public/message/`, {
       method: 'POST',
       headers: {

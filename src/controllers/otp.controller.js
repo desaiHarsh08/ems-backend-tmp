@@ -49,7 +49,7 @@ export const generateOTP = async (req, res) => {
             email: user.email
         })
 
-        console.log(user)
+        console.log(user, otp)
 
         const recipientNumber = user.phone;
         const messageArr = [otp];

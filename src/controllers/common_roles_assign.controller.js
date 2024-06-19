@@ -16,7 +16,7 @@ const sendEmail = async (recipientEmail, subject, body) => {
         },
         body: JSON.stringify({ recipientEmail, subject, body })
     });
-    console.log(await response.json())
+    console.log(await response.json(), subject)
 }
 
 export const createRoleForUser = async (req, res) => {
@@ -59,12 +59,20 @@ export const createRoleForUser = async (req, res) => {
 
         }
         else if (userType === "SUPPORT_STAFF") {
+            console.log('support staff', { username, email, userType, phone, examName, examDate, examId, examTime })
             roleObjAssigned = await SupportStaff.create({ username, email, userType, phone, examName, examDate, examId, examTime });
+            console.log(roleObjAssigned);
+            body = `Dear ${username}\n\nYou have been assigned role of Support Staff for the following upcoming examination. you will need allott the answer scripts for correction immediately after completion of examination.\n\nName of the Examination: ${examName}\nDate of Examination: ${formattedDate}\nExam Time: ${examTime}\n\nExamination Committee
+            `;
+            console.log('sending email', email, subject, body )
+            sendEmail(email, subject, body);
         }
         
         
-
-        sendWhatsAppMessage(phone, messageArr, process.env.INTERAKT_API_KEY, process.env.INTERAKT_BASE_URL, templateName);
+        if(userType !== "SUPPORT_STAFF") {
+            sendWhatsAppMessage(phone, messageArr, process.env.INTERAKT_API_KEY, process.env.INTERAKT_BASE_URL, templateName);
+        }
+        
         sendEmail(email, subject, body);
 
         return res.status(201).json(new ApiResponse(201, roleObjAssigned, "ROLE FOR USER CREATED...!"));
